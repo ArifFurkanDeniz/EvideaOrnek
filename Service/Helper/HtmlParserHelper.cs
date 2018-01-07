@@ -37,6 +37,7 @@ namespace Service
 
             foreach (var html in  await Task.WhenAll(_getGtmlFromSite))
             {
+
                 HtmlDocument htmldoc = new HtmlDocument();
                 htmldoc.LoadHtml(html);
 
