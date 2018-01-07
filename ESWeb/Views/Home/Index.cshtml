@@ -1,0 +1,11 @@
+﻿@model ESWeb.Models.Home.IndexViewModel
+@{
+    ViewBag.Title = "Elastic Search";
+}
+
+<h2>Elastic Search</h2>
+<form action="/Home/AramaSonuclari" method="post">
+    @Html.TextBoxFor(x => x.Text)
+    <input type="submit" value="Gönder" />
+</form>
+

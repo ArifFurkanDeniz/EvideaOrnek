@@ -10,26 +10,34 @@ namespace ElasticSearch
 {
     public class ESMananger<T>: IESManager<T> where T : class
     {
+        private string AliasName { get; set; }
+        private string IndexName { get; set; }
         private Uri node { get; set; }
         private ConnectionSettings settings { get; set; }
-        private ElasticClient client { get; set; }
-        public ESMananger()
+        protected ElasticClient client { get; set; }
+        public ESMananger(string aliasName, string indexName)
         {
+            IndexName = indexName;
+            AliasName = aliasName;
             node = new Uri("http://localhost:9200/");
             settings = new ConnectionSettings(node);
             settings.DefaultIndex("defaultindex")
-          .MapDefaultTypeIndices(m => m.Add(typeof(T), "evidea6"));
+          .MapDefaultTypeIndices(m => m.Add(typeof(T), aliasName));
             client = new ElasticClient(settings);
 
         }
+        /// <summary>
+        /// elastic search indexi yoksa oluşturur
+        /// </summary>
+        /// <returns>elastic search apisinden hata alırsa false ile birlikte hatayı döner</returns>
         public Tuple<bool, string> CreateNewIndex()
         {
-            var createIndexDescriptor = new CreateIndexDescriptor("evidea_urun6")
+            var createIndexDescriptor = new CreateIndexDescriptor(IndexName)
           .Mappings(ms => ms
                           .Map<T>(m => m.AutoMap())
-                   ).Aliases(a => a.Alias("evidea6"));
+                   ).Aliases(a => a.Alias(AliasName));
   
-            var request = new IndexExistsRequest("evidea_urun6");
+            var request = new IndexExistsRequest(IndexName);
             var result = client.IndexExists(request);
 
             if (!result.Exists)
@@ -44,15 +52,54 @@ namespace ElasticSearch
             return new Tuple<bool, string>(true, "");
 
         }
-
+        /// <summary>
+        /// elastic searche gelen parametreyi bulk olarak indexler
+        /// </summary>
+        /// <param name="itemList">indexlenecek bulk liste</param>
         public void FillIndex(List<T> itemList)
         {
-            //foreach (var item in itemList)
-            //{
-            //    client.Index<T>(item, idx => idx.Index("evidea5"));
-            //}
-            client.IndexMany<T>(itemList, "evidea6");
+            client.IndexMany<T>(itemList, AliasName);
         }
+
+        /// <summary>
+        /// girilen parametrelere göre elastic search üzerinde arama yapar
+        /// </summary>
+        /// <param name="textList">aranacak kelimeler</param>
+        /// <param name="field">kelimelerin index içinde hangi alanda aranacağı bilgisi</param>
+        /// <returns></returns>
+        public Tuple<bool, List<T>, string> Search(string[] textList, string field)
+        {
+
+            var mustClauses = new List<QueryContainer>();
+
+            foreach (var item in textList)
+            {
+                mustClauses.Add(new TermQuery
+                {
+                    Field = new Field(field),
+                    Value = item.ToLower()
+                });
+            }
+
+            var searchRequest = new SearchRequest<T>(AliasName)
+            {
+                Size = 30,
+                From = 0,
+                Query = new BoolQuery { Must = mustClauses }
+            };
+
+            var searchResponse = client.Search<T>(searchRequest);
+
+            if (searchResponse.IsValid)
+            {
+                return new Tuple<bool, List<T>, string>(true, searchResponse.Documents.ToList(), "");
+            }
+            else
+            {
+                return new Tuple<bool, List<T>, string>(false, null, searchResponse.ServerError.Error.ToString());
+            }
+        }
+
 
     }
 }

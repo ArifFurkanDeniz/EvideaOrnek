@@ -1,0 +1,27 @@
+﻿@model ESWeb.Models.Home.AramaSonuclariViewModel
+@{
+    ViewBag.Title = "AramaSonuclari";
+}
+
+<h2>AramaSonuclari</h2>
+
+<ul>
+    @if (Model.UrunListesi !=null)
+    {
+        foreach (var item in Model.UrunListesi)
+        {
+            <li>
+                <span>@item.Title</span>
+                <br />
+                <span>@item.Description</span>
+                <br />
+                <span>@item.UrunAdi</span>
+                <br />
+                <span>@item.UrunFiyati</span>
+                <br />
+            </li>
+        }
+    }
+   
+</ul>
+<a href="/">Geri</a>

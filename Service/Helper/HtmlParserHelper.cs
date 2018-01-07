@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using Service.Helper;
 using Service.Model;
 using System;
 using System.Collections.Generic;
@@ -9,21 +10,30 @@ using System.Threading.Tasks;
 
 namespace Service
 {
-    public class HtmlParserHelper
+    public class HtmlParserHelper : IHtmlParserHelper
     {
         HttpClient client;
         string Url;
 
-        public HtmlParserHelper(string url)
+        /// <summary>
+        /// Htm parserın kullanacak olduğu apiyi impelemente eder
+        /// </summary>
+        /// <param name="baseAddress">gidielecek domain adresi</param>
+        /// <param name="url">gidilecek link adresi</param>
+        public HtmlParserHelper(string baseAddress,string url)
         {
             Url = url;
             client = new HttpClient();
             // client.BaseAddress = new Uri(ConfigurationManager.AppSettings["Trepas_WebAboneNetAPI"]);
-            client.BaseAddress = new Uri("http://www.evidea.com");
+            client.BaseAddress = new Uri(baseAddress);
             client.DefaultRequestHeaders.Accept.Clear();
             //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
  
+        /// <summary>
+        /// adrese gidip ürün sayfalarını asenkron olarak çalıştırıp ürün bilgilerini alan fonksiyon
+        /// </summary>
+        /// <returns>alınan ürünlerin ham verilerini döner</returns>
         public async Task<List<Urun>> GetUrunListesi()
         {
             var urunLinkleri = await GetUrunLinkleri();
@@ -34,6 +44,7 @@ namespace Service
             {
                 _getGtmlFromSite.Add(GetHtmlFromSite(item));  
             }
+
 
             foreach (var html in  await Task.WhenAll(_getGtmlFromSite))
             {
@@ -63,6 +74,10 @@ namespace Service
                 return urunListesi;
         }
 
+        /// <summary>
+        /// adres üzerinden her ürün sayfasının linklerini parse eden fonksiyon
+        /// </summary>
+        /// <returns>ürün linklerini döner</returns>
         private async Task<List<string>> GetUrunLinkleri()
         {
             string html = await GetHtmlFromSite(Url);
@@ -85,6 +100,11 @@ namespace Service
 
             return urunLinkleri; 
         }
+        /// <summary>
+        /// sayfanın html bilgisini metin şeklinde alan fonksiyon
+        /// </summary>
+        /// <param name="url">gidilecek sayfa adresi</param>
+        /// <returns>sayfa linklerini döner</returns>
         private async Task<string> GetHtmlFromSite(string url)
         {
             try
@@ -95,8 +115,6 @@ namespace Service
             }
             catch (Exception ex)
             {
-                var log = log4net.LogManager.GetLogger(typeof(HtmlParserHelper));
-               log.Error(string.Format("{0}-{1}-{2}", ex.Message, ex.InnerException.Message, ex.StackTrace));
                 throw ex;
             }
           

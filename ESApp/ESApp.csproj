@@ -38,6 +38,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -55,10 +56,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ElasticSearch\ElasticSearch.csproj">
-      <Project>{8d892758-71f3-4ee5-a8ae-12983628583e}</Project>
-      <Name>ElasticSearch</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Service\Service.csproj">
       <Project>{efc78cf7-4761-4e9b-b0dc-038ff9a31b5e}</Project>
       <Name>Service</Name>

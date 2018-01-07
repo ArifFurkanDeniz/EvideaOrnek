@@ -11,5 +11,6 @@ namespace ElasticSearch
         Tuple<bool, string> CreateNewIndex();
 
         void FillIndex(List<T> itemList);
+        Tuple<bool,List<T>, string> Search(string[] textList, string field);
     }
 }
